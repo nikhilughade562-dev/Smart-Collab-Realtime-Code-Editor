@@ -1,6 +1,12 @@
 const dockerService=require('../Services/dockerServices.js')
 
 const executeCode = async (req, res) => {
+    if(process.env.DISABLE_EXECUTION === "true"){
+        return res.status(503).json({
+            success:false,
+            message:"Code execution is disabled on the deployed version."
+        });
+    }
     try {
         const { language, code, input = "" } = req.body;
 
