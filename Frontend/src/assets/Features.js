@@ -1,7 +1,7 @@
 
 import run from '../assets/Run.png'
 import Room from '../assets/Room.png'
-import download from '../assets/download.jpg'
+import download from '../assets/Download.jpg'
 import editor from '../assets/Editor.png'
 
 const features = [
