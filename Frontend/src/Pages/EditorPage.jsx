@@ -35,7 +35,6 @@ const EditorPage = () => {
         socketRef.current.on(ACTIONS.JOINED,({clients,userName,socketId,code})=>{
             if(userName!==username){
                 toast.success(`${userName} Joined Room`);
-                console.log(`${userName} joined`);
             }
             setclientsList(clients);
             if(code){
@@ -71,6 +70,7 @@ const EditorPage = () => {
 
     // leave room
     function leaveRoom() {
+        localStorage.removeItem("username");
         navigate('/joinRoom');
     }
   

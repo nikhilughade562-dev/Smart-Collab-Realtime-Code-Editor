@@ -4,7 +4,6 @@ const {getParticipantsKey} = require('../Utils/redisKeys.js');
 function initializeSocket(io,redisClient) {
 
 io.on("connection", (socket) => {
-    console.log("Socket connected:", socket.id);
 
     //Join room
     socket.on(ACTIONS.JOIN,async ({roomId,userName})=>{
@@ -38,6 +37,13 @@ io.on("connection", (socket) => {
         }
     });
 
+    //language sync
+    socket.on(ACTIONS.LANGUAGE_CHANGE, ({ roomId, language }) => {
+    socket.to(roomId).emit(ACTIONS.LANGUAGE_CHANGE, {
+        language,
+    });
+
+   });
 
     //code syncing
     socket.on(ACTIONS.CODE_CHANGE, ({ roomId, code }) => {
@@ -81,7 +87,6 @@ io.on("connection", (socket) => {
             //last participant
             if (clients.length === 0) {
                 await redisClient.del(participantsKey);
-                console.log(`Room ${roomId} deleted (empty)`);
             }
             else{
             // Notify others

@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { EditorView } from "@codemirror/view";
-import { javascript } from "@codemirror/lang-javascript";
 import { python } from "@codemirror/lang-python";
 import { java } from "@codemirror/lang-java";
 import { cpp } from "@codemirror/lang-cpp";
@@ -12,12 +11,14 @@ import copyIcon from "../assets/CopyIcon.png";
 import runIcon from "../assets/RunIcon.png";
 import downloadIcon from "../assets/downloadicon.png";
 import { useAppContext } from "../Context/AppContext.jsx";
+import axios from "axios";
 
 const CodeEditor = ({ socketRef, roomId }) => {
   const { loadCode, setloadCode, output, setOutput } = useAppContext();
   const [language, setLanguage] = useState("javascript");
   const [code, setCode] = useState(loadCode);
   const [loading, setLoading] = useState(false);
+  const [input, setInput] = useState("");
   const isRemoteUpdate = useRef(false);
   const saveTimeout = useRef(null);
   const [consoleHeight, setConsoleHeight] = useState(180);
@@ -44,49 +45,25 @@ const CodeEditor = ({ socketRef, roomId }) => {
   };
 
   //-----------------Code Execution---------------------
-  const BASE_URL = "https://ce.judge0.com";
-  const languageMap = {
-    javascript: 63,
-    python: 71,
-    java: 62,
-    cpp: 54,
-  };
+  const BASE_URL = "http://localhost:4000";
 
   const handleRun = async () => {
     try {
       setLoading(true);
       setOutput("");
+      const response = await axios.post(`${BASE_URL}/api/code/run`, {
+        language,
+        code,
+        input,
+      });
 
-      const response = await fetch(
-        `${BASE_URL}/submissions?base64_encoded=false&wait=true`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            source_code: code,
-            language_id: languageMap[language],
-            stdin: "",
-          }),
-        },
-      );
-
-      const data = await response.json();
-
-      const result =
-        data.stdout ||
-        data.stderr ||
-        data.compile_output ||
-        data.message ||
-        "No Output";
-
-      setOutput(result);
-
-      setLoading(false);
+      const { stdout, stderr } = response.data.output;
+      setOutput(stdout || stderr || "No Output");
     } catch (error) {
       console.error(error);
-      toast.error("Execution failed");
+
+      setOutput(error.response?.data?.message || "Execution failed");
+    } finally {
       setLoading(false);
     }
   };
@@ -98,10 +75,8 @@ const CodeEditor = ({ socketRef, roomId }) => {
         return python();
       case "java":
         return java();
-      case "cpp":
-        return cpp();
       default:
-        return javascript();
+        return cpp();
     }
   };
 
@@ -115,10 +90,38 @@ const CodeEditor = ({ socketRef, roomId }) => {
     }
   };
 
+  const handleLanguageChange=(e)=>{
+    const selectedLanguage=e.target.value;
+    setLanguage(selectedLanguage);
+
+    //sync across user
+    socketRef.current.emit(ACTIONS.LANGUAGE_CHANGE,{
+        roomId,
+        language:selectedLanguage
+    });
+  }
+
+   useEffect(() => {
+    if(!socketRef.current) return;
+    const handleLanguageUpdate = ({language}) => {
+        setLanguage(language);
+    };
+    socketRef.current.on(
+        ACTIONS.LANGUAGE_CHANGE,
+        handleLanguageUpdate
+    );
+
+    return ()=>{
+        socketRef.current.off(
+            ACTIONS.LANGUAGE_CHANGE,
+            handleLanguageUpdate
+        );
+    };
+},[language]);
+
   // ---------------- DOWNLOAD ----------------
   const handleDownload = () => {
     const extensionMap = {
-      javascript: "js",
       python: "py",
       java: "java",
       cpp: "cpp",
@@ -190,9 +193,8 @@ const CodeEditor = ({ socketRef, roomId }) => {
           <select
             className="bg-black border-[0.1rem] rounded-sm"
             value={language}
-            onChange={(e) => setLanguage(e.target.value)}
+            onChange={handleLanguageChange}
           >
-            <option value="javascript">JavaScript</option>
             <option value="python">Python</option>
             <option value="java">Java</option>
             <option value="cpp">C++</option>
@@ -221,6 +223,7 @@ const CodeEditor = ({ socketRef, roomId }) => {
         {/* CODE EDITOR */}
         <div className="flex-1 overflow-hidden">
           <CodeMirror
+            key={language}
             value={code}
             width="100%"
             height="100%"
@@ -244,12 +247,26 @@ const CodeEditor = ({ socketRef, roomId }) => {
         {/* CONSOLE */}
         <div
           style={{ height: `${consoleHeight}px` }}
-          className="bg-black flex flex-col border-t-2 border-white">
-          <div className="flex justify-between items-center border-b-white border-[0.1px] w-full">
-            <h1 className="pl-2">Console :</h1>
+          className="bg-black border-t-2 border-white flex flex-col"
+        >
+          {/* INPUT */}
+
+          <div className="border-b border-gray-700 p-2">
+            <h2 className="mb-2 font-semibold">Input</h2>
+
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Enter program input..."
+              className="w-full h-20 bg-[#1e1e1e] text-white p-2 resize-none outline-none border border-gray-600 rounded"
+            />
           </div>
 
-          <div className="p-2 mt-2 overflow-auto flex-1">
+          {/* OUTPUT */}
+
+          <div className="flex-1 p-2 w-6xl">
+            <h2 className="mb-2 font-semibold">Output</h2>
+
             {loading ? (
               <div className="flex space-x-1">
                 <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
@@ -257,7 +274,7 @@ const CodeEditor = ({ socketRef, roomId }) => {
                 <div className="w-2 h-2 bg-white rounded-full animate-bounce delay-300"></div>
               </div>
             ) : (
-              output
+              <pre className="whitespace-pre-wrap">{output}</pre>
             )}
           </div>
         </div>

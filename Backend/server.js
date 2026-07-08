@@ -4,9 +4,15 @@ const http=require('http');
 const {Server} = require('socket.io');
 const {redisClient,connectRedis}=require('./Config/redis.js');
 const initializeSocket =require('./Socket/socket.js');
+const cors = require("cors");
+const executeRoutes = require("./Routes/executeRoutes");
 
 connectRedis();
 const app=express();
+app.use(cors());
+app.use(express.json());
+
+app.use("/api/code", executeRoutes);
 const server = http.createServer(app);
 
 
@@ -24,5 +30,5 @@ app.get('/', (req, res) => {
 });
 
 
-const PORT = process.env.PORT || 5000; 
+const PORT = process.env.PORT; 
 server.listen(PORT, () => console.log(`Listening on port ${PORT}`));

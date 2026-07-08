@@ -11,7 +11,7 @@ const Footer = () => {
         <div className="max-w-md">
         <span className='text-primary font-bold text-[1.7rem]' onClick={()=>{navigate('/')}}>SMART COLLAB</span>
           <p className="mt-6 text-white text-sm leading-relaxed">
-            <strong>Smart Collab</strong> A real-time collaborative coding platform featuring multi-language support. Users join secure room-based sessions to write, run, and sync code instantly, with Redis-backed state management ensuring fast, scalable, and seamless collaboration across connected participants.
+            <strong>Smart Collab</strong> A real-time collaborative coding platform featuring multi-language support. Users join secure room-based sessions to write, run, and sync code instantly, and seamless collaboration across connected participants.
           </p>
         </div>
 

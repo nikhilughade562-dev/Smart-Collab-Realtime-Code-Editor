@@ -10,16 +10,4 @@ const getParticipantsKey = (roomId) =>
 const getCodeKey = (roomId) =>
   `${roomPrefix(roomId)}:roomcode`;
 
-// Chat List → array of messages
-const getChatKey = (roomId) =>
-  `${roomPrefix(roomId)}:chat`;
-
-// Canvas String → JSON of canvas state
-const getCanvasKey = (roomId) =>
-  `${roomPrefix(roomId)}:canvas`;
-
-// Meta Hash → createdAt, lastActivity, etc.
-const getMetaKey = (roomId) =>
-  `${roomPrefix(roomId)}:meta`;
-
-module.exports = {getParticipantsKey,getCodeKey,getChatKey,getCanvasKey,getMetaKey};
+module.exports = {getParticipantsKey,getCodeKey};

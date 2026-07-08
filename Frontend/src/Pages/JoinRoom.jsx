@@ -7,7 +7,6 @@ import { useAppContext } from '../Context/AppContext.jsx';
 const JoinRoom = () => {
   const {username,setaUsername}=useAppContext();
   const [roomid,setRoomId]=useState('');
-  // const [userName,setaUserName]=useState('');
   const navigate=useNavigate();
 
   // handle enter event
@@ -31,6 +30,7 @@ const JoinRoom = () => {
       toast.error('Room ID & Username required');
       return;
     }
+    localStorage.setItem("username",username);
     //also passing username with router nagivate so we can make use of it editor page
     navigate(`/editor/${roomid}`);
 
