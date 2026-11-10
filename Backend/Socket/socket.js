@@ -87,6 +87,7 @@ io.on("connection", (socket) => {
             //last participant
             if (clients.length === 0) {
                 await redisClient.del(participantsKey);
+                await redisClient.del(`room:${roomId}:roomcode`);
             }
             else{
             // Notify others

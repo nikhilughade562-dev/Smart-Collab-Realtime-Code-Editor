@@ -12,6 +12,7 @@ const EditorPage = () => {
   const navigate=useNavigate();
   const { roomId } = useParams();
   const socketRef=useRef(null);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
 
   useEffect(() => {
     const init =async()=>{
@@ -73,6 +74,20 @@ const EditorPage = () => {
         localStorage.removeItem("username");
         navigate('/joinRoom');
     }
+
+    function handleLeaveClick() {
+        setShowLeaveModal(true);
+    }
+
+    function cancelLeave() {
+        setShowLeaveModal(false);
+    }
+
+    function confirmLeave() {
+        setShowLeaveModal(false);
+        leaveRoom();
+    }
+
   
   return (
     <div className='flex'>
@@ -95,9 +110,67 @@ const EditorPage = () => {
 
         <div className='flex flex-col'>
           <button className='py-1.5 bg-white rounded-lg font-bold' onClick={copyRoomId}>Copy Room ID</button>
-          <button className='mt-5 py-1.5 bg-primary rounded-lg font-bold text-black' onClick={leaveRoom}>Leave</button>
+          <button className='mt-5 py-1.5 bg-primary rounded-lg font-bold text-black'  onClick={handleLeaveClick}>Leave</button>
         </div>
       </div>
+
+      {showLeaveModal && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+
+        <div className="w-full max-w-md bg-[#1e1e1e] border border-gray-700 rounded-xl p-6 shadow-2xl">
+
+            {/* Warning Icon */}
+            <div className="flex justify-center mb-4">
+                <div className="w-14 h-14 rounded-full bg-red-500/10 flex items-center justify-center">
+                    <span className="text-red-500 text-3xl">⚠</span>
+                </div>
+            </div>
+
+            {/* Heading */}
+            <h2 className="text-white text-xl font-bold text-center mb-2">
+                Leave this Room?
+            </h2>
+
+            <p className="text-gray-400 text-sm text-center mb-5">
+                Are you sure you want to leave this collaboration session?
+            </p>
+
+            {/* Warning Message */}
+            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-6">
+                <p className="text-red-400 text-sm font-semibold mb-1">
+                    Unsaved Code Warning
+                </p>
+
+                <p className="text-gray-300 text-sm leading-relaxed">
+                    Your code is temporarily stored and will not be
+                    permanently saved. Once the last participant leaves
+                    the room, all room data will be deleted and cannot
+                    be recovered.
+                </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+
+                <button
+                    onClick={cancelLeave}
+                    className="flex-1 py-2.5 rounded-lg border border-gray-600 text-gray-300 font-semibold hover:bg-gray-700 transition"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    onClick={confirmLeave}
+                    className="flex-1 py-2.5 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition"
+                >
+                    Leave Room
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+)}
     
       <div>
         <Editor socketRef={socketRef} roomId={roomId}/>
